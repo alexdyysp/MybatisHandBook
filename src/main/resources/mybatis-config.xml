@@ -26,7 +26,9 @@
 
     <mappers>
         <mapper resource="mapper/CountryMapper.xml"/>
+        <mapper resource="mapper/UserMapper.xml"/>
     </mappers>
+
 </configuration>
 
 
