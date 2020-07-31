@@ -75,5 +75,114 @@ MyBatis 注解方式就是将SQL语句直接写在接口上。这种方式的优
 
 在MyBatis注解SQL中，最基本的就是@Select、@Insert、@Update 和@Delete 四种。
 
+### @Select注解
 
+`@Select`注解后一般跟着SELECT的sql语句，注解一般加在Mapper接口类的接口上
+```java
+@Select({"select id,role_name roleName, enabled, create_by createBy, create_time createTime",
+         "from sys_role",
+         "where id = #{id}"})
+SysRole selectById(Long id);
 
+@Select({"select id,role_name roleName, enabled, create_by createBy, create_time createTime
+         from sys_role
+         where id = #{id}"})
+SysRole selectById(Long id);
+```
+
+`@Result`注解对应XML文件中`<result>`元素，参数重写上id=true时对应`<id>`元素
+
+`@Results`注解增加了一个id属性，设置id属性可以通过id属性引用同一个`@Result`配置
+
+```java
+@Results(id = "roleResultMap", value = {
+    @Result(property = "id", column = "id", id = true),
+    @Result(property = "roleName", column = "role_name"),
+    @Result(property = "enabled", column = "enabled"),
+    @Result(property = "createBy", column = "create_by"),
+    @Result(property = "createTime", column = "create_time")
+})
+@Select("select id,role_name, enabled, create_by, create_time from sys_role where id = #{id}")
+SysRole selectById2(Long id);
+
+@ResultMap("roleResultMap")
+@Select("select * from sys_role")
+List<SysRole> selectAll();
+```
+
+### @Insert注解
+@Insert注解本身是简单的，但如果需要返回主键的值，情况会变的稍微复杂一些。
+#### 不需要返回主键
+```java
+@Insert({"insert into sys_role(id, role_name, enabled, create_by, create_time)",
+        "values(#{id}, #{roleName}, #{enabled}, #{createBy}, #{createTime, jdbcType=TIMESTAMP})"})
+int insert(SysRole sysRole);
+```
+#### 返回自增主键
+```java
+@Insert({"insert into sys_role(role_name, enabled, create_by, create_time)",
+        "values(#{roleName}, #{enabled}, #{createBy}, #{createTime, jdbcType=TIMESTAMP})"})
+@Options(useGeneratedKeys = true, keyProperty = "id")
+int insertByUseGeneratedKeys(SysRole sysRole);
+```
+sql语句中少了id属性，注解多了一个`@Options`，并设置了`useGeneratedKeys`和`keyProperty`属性
+
+#### 返回非自增主键
+
+```java
+@Insert({"insert into sys_role(role_name, enabled, create_by, create_time)",
+        "values(#{roleName}, #{enabled}, #{createBy}, #{createTime, jdbcType=TIMESTAMP})"})
+@SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty = "id", resultType = Long.class, before = false)
+int insertByInsertBySelectKeyTest(SysRole sysRole);
+```
+注解多了`statement`属性。
+配置与返回自增主键基本相同，其中`before`为`false`时功能等同于order="AFTER"。
+
+### @Update
+```java
+@Update({"update sys_role",
+        "set role_name = #{roleName},",
+        "enabled = #{enabled},",
+        "create_by = #{createBy},",
+        "create_time = #{createTime, jdbcType=TIMESTAMP}",
+        "where id = #{id}"
+})
+int updateById(SysRole sysRole);
+```
+
+### @Delete
+```java
+@Delete("delete from sys_role where id = #{id}")
+int deleteById(Long id);
+```
+
+### 四种Provider注解
+除了四种简答常用SQL注解外，MyBatis还提供了4种`@Provider`注解
+
+#### @SelectProvider
+Provider注解中提供了两个必填属性type和method。
+- type配置是一个包含method属性指定方法的类，这个类必须有空构造方法。
+- method属性指定了类中的方法值，这个方法就是执行需要执行的SQL语句，返回值是String类型。
+
+```java
+// Mapper接口类中
+@SelectProvider(type = PrivilegeProvider.class, method = "selectById")
+SysPrivilege selectById(Long id);
+
+// type所指PrivilegeProvider类中的method方法
+public String selectById(final Long id){
+    return new SQL(){
+        {
+            SELECT("id, privilege_name, privilege_url");
+            FROM("sys_privilege");
+            WHERE("id = #{id}");
+        }
+    }.toString();
+}
+```
+
+#### @InsertProvider
+
+#### @UpdateProvider
+
+#### @DeleteProvider

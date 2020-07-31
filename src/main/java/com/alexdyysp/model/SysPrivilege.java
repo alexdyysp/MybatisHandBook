@@ -2,27 +2,39 @@ package com.alexdyysp.model;
 
 public class SysPrivilege {
     /**
-     * 角色ID
-     */
-    private Long roleId;
-    /**
      * 权限ID
      */
-    private Long privilegeId;
+    private Long id;
+    /**
+     * 权限名称
+     */
+    private String privilegeName;
+    /**
+     * 权限URL
+     */
+    private String privilegeUrl;
 
-    public Long getRoleId() {
-        return roleId;
+    public Long getId() {
+        return id;
     }
 
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public Long getPrivilegeId() {
-        return privilegeId;
+    public String getPrivilegeName() {
+        return privilegeName;
     }
 
-    public void setPrivilegeId(Long privilegeId) {
-        this.privilegeId = privilegeId;
+    public void setPrivilegeName(String privilegeName) {
+        this.privilegeName = privilegeName;
+    }
+
+    public String getPrivilegeUrl() {
+        return privilegeUrl;
+    }
+
+    public void setPrivilegeUrl(String privilegeUrl) {
+        this.privilegeUrl = privilegeUrl;
     }
 }
