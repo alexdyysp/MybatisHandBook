@@ -29,4 +29,46 @@
          from sys_user;
     </select>
 
+    <select id="selectRolesByUserId" resultType="com.alexdyysp.model.SysRole">
+        select r.id,
+            r.role_name roleName,
+            r.enabled,
+            r.create_by creatBy,
+            r.create_time createTime
+        from sys_user u
+        inner join sys_user_role ur on u.id=ur.user_id
+        inner join sys_role r on ur.role_id=r.id
+        where u.id=#{userId}
+    </select>
+
+    <insert id="insert">
+        insert into sys_user(
+			user_name, user_password, user_email,
+			user_info, head_img, create_time)
+		values(
+			#{userName}, #{userPassword}, #{userEmail},
+			#{userInfo}, #{headImg, jdbcType=BLOB}, #{createTime, jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertByUseGeneratedKeys" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_user(
+			user_name, user_password, user_email,
+			user_info, head_img, create_time)
+		values(
+			#{userName}, #{userPassword}, #{userEmail},
+			#{userInfo}, #{headImg, jdbcType=BLOB}, #{createTime, jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertBySelectKey">
+        insert into sys_user(
+			user_name, user_password, user_email,
+			user_info, head_img, create_time)
+		values(
+			#{userName}, #{userPassword}, #{userEmail},
+			#{userInfo}, #{headImg, jdbcType=BLOB}, #{createTime, jdbcType=TIMESTAMP})
+		<selectKey keyColumn="id" resultType="long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
 </mapper>

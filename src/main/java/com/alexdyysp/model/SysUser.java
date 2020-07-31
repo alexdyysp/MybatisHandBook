@@ -32,6 +32,15 @@ public class SysUser {
      */
     private Date createTime;
 
+    public SysUser(String userName, String userPassword, String userEmail, String userInfo, byte[] headImg, Date createTime) {
+        this.userName = userName;
+        this.userPassword = userPassword;
+        this.userEmail = userEmail;
+        this.userInfo = userInfo;
+        this.headImg = headImg;
+        this.createTime = createTime;
+    }
+
     public Long getId() {
         return id;
     }

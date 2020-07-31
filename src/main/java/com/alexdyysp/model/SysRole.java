@@ -24,6 +24,19 @@ public class SysRole {
      * 用户信息
      */
     private SysUser user;
+
+    @Override
+    public String toString() {
+        return "SysRole{" +
+                "id=" + id +
+                ", roleName='" + roleName + '\'' +
+                ", createBy='" + createBy + '\'' +
+                ", createTime=" + createTime +
+                ", user=" + user +
+                ", privilegeList=" + privilegeList +
+                '}';
+    }
+
     /**
      * 角色包含的权限列表
      */
