@@ -1,5 +1,7 @@
 package com.alexdyysp.model;
 
+import com.alexdyysp.type.Enabled;
+
 import java.util.Date;
 import java.util.List;
 
@@ -13,6 +15,10 @@ public class SysRole {
      */
     private String roleName;
     /**
+     * 有效标志
+     */
+    private Integer enabled;
+    /**
      * 创建人
      */
     private String createBy;
@@ -24,23 +30,29 @@ public class SysRole {
      * 用户信息
      */
     private SysUser user;
-
-    @Override
-    public String toString() {
-        return "SysRole{" +
-                "id=" + id +
-                ", roleName='" + roleName + '\'' +
-                ", createBy='" + createBy + '\'' +
-                ", createTime=" + createTime +
-                ", user=" + user +
-                ", privilegeList=" + privilegeList +
-                '}';
-    }
-
     /**
      * 角色包含的权限列表
      */
     List<SysPrivilege> privilegeList;
+
+    public SysRole(){
+    }
+
+    public SysRole(String roleName, Integer enabled, String createBy, Date createTime) {
+        this.roleName = roleName;
+        this.enabled = enabled;
+        this.createBy = createBy;
+        this.createTime = createTime;
+    }
+
+    public SysRole(Long id, String roleName, Integer enabled, String createBy, Date createTime, SysUser user) {
+        this.id = id;
+        this.roleName = roleName;
+        this.enabled = enabled;
+        this.createBy = createBy;
+        this.createTime = createTime;
+        this.user = user;
+    }
 
     public Long getId() {
         return id;
@@ -56,6 +68,14 @@ public class SysRole {
 
     public void setRoleName(String roleName) {
         this.roleName = roleName;
+    }
+
+    public Integer getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Integer enabled) {
+        this.enabled = enabled;
     }
 
     public String getCreateBy() {
@@ -88,5 +108,18 @@ public class SysRole {
 
     public void setPrivilegeList(List<SysPrivilege> privilegeList) {
         this.privilegeList = privilegeList;
+    }
+
+
+    @Override
+    public String toString() {
+        return "SysRole{" +
+                "id=" + id +
+                ", roleName='" + roleName + '\'' +
+                ", createBy='" + createBy + '\'' +
+                ", createTime=" + createTime +
+                ", user=" + user +
+                ", privilegeList=" + privilegeList +
+                '}';
     }
 }
