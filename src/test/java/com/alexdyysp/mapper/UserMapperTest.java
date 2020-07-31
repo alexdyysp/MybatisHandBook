@@ -110,4 +110,74 @@ public class UserMapperTest extends BaseMapperTest{
             sqlSession.close();
         }
     }
+
+    @Test
+    public void updateByIdTest(){
+        SqlSession sqlSession = getSqlSession();
+        try{
+            UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+            SysUser sysUser = userMapper.selectById(1L);
+
+            Assert.assertEquals("admin", sysUser.getUserName());
+            sysUser.setUserName("admin_test");
+            sysUser.setUserEmail("test@mybatis.tk");
+
+            int result = userMapper.updateById(sysUser);
+
+            Assert.assertEquals(1, result);
+            Assert.assertNotNull("admin_test", sysUser.getUserName());
+
+        }finally {
+            sqlSession.rollback();
+            sqlSession.close();
+        }
+    }
+
+    @Test
+    public void deleteByIdTest() {
+        SqlSession sqlSession = getSqlSession();
+        try {
+            UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+            //从数据库查询 1 个 user 对象，根据 id = 1 查询
+            SysUser user1 = userMapper.selectById(1L);
+            //现在还能查询出 user 对象
+            Assert.assertNotNull(user1);
+            //调用方法删除
+            Assert.assertEquals(1, userMapper.deleteById(1L));
+            //再次查询，这时应该没有值，为 null
+            Assert.assertNull(userMapper.selectById(1L));
+
+            //使用 SysUser 参数再做一遍测试，根据 id = 1001  查询
+            SysUser user2 = userMapper.selectById(1001L);
+            //现在还能查询出 user 对象
+            Assert.assertNotNull(user2);
+            //调用方法删除，注意这里使用参数为 user2
+            Assert.assertEquals(1, userMapper.deleteById(user2.getId()));
+            //再次查询，这时应该没有值，为 null
+            Assert.assertNull(userMapper.selectById(1001L));
+            //使用 SysUser 参数再做一遍测试
+        } finally {
+            //为了不影响数据库中的数据导致其他测试失败，这里选择回滚
+            //由于默认的 sqlSessionFactory.openSession() 是不自动提交的，
+            //因此不手动执行 commit 也不会提交到数据库
+            sqlSession.rollback();
+            //不要忘记关闭 sqlSession
+            sqlSession.close();
+        }
+    }
+
+    @Test
+    public void selectRolesByUserIdAndRoleEnabledTest(){
+        SqlSession sqlSession = getSqlSession();
+        try{
+            UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+
+            List<SysRole> userList = userMapper.selectRolesByUserIdAndRoleEnabled(1L, 1);
+
+            Assert.assertNotNull(userList);
+            Assert.assertTrue(userList.size()>0);
+        }finally {
+            sqlSession.close();
+        }
+    }
 }
