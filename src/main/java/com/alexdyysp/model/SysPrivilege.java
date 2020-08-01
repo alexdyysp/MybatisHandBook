@@ -37,4 +37,13 @@ public class SysPrivilege {
     public void setPrivilegeUrl(String privilegeUrl) {
         this.privilegeUrl = privilegeUrl;
     }
+
+    @Override
+    public String toString() {
+        return "SysPrivilege{" +
+                "id=" + id +
+                ", privilegeName='" + privilegeName + '\'' +
+                ", privilegeUrl='" + privilegeUrl + '\'' +
+                '}';
+    }
 }

@@ -5,6 +5,7 @@ import com.alexdyysp.model.SysUser;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserMapper {
 
@@ -13,6 +14,9 @@ public interface UserMapper {
 
     // 获取全部用户
     List<SysUser> selectAll();
+
+    // 根据用户名查询
+    SysUser selectByUserName(String userName);
 
     // 根据用户Id获取用户拥有的所有角色
     List<SysRole> selectRolesByUserId(Long userId);
@@ -34,4 +38,22 @@ public interface UserMapper {
 
     // 根据主键Id和角色enabled状态获取用户的角色
     List<SysRole> selectRolesByUserIdAndRoleEnabled(@Param("userId")Long userId, @Param("enabled")Integer enabled);
+
+    // 根据动态条件查询用户信息
+    List<SysUser> selectByUserNameOrUserEmail(SysUser sysUser);
+
+    // 根据主键和动态条件更新用户信息
+    int updateByIdSelective(SysUser sysUser);
+
+    // 根据用户Id或用户名查询
+    SysUser selectByIdOrUserName(SysUser sysUser);
+
+    // 根据用户id集合查询
+    List<SysUser> selectByIdList(List<Long> idList);
+
+    // 批量插入用户信息
+    int insertListByForEach(List<SysUser> userList);
+
+    // 通过Map更新列
+    int updateByMapForEach(Map<String, Object> map);
 }

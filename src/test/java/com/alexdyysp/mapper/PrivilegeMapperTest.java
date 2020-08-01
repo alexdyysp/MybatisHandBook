@@ -1,7 +1,6 @@
 package com.alexdyysp.mapper;
 
 import com.alexdyysp.model.SysPrivilege;
-import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,7 +20,7 @@ public class PrivilegeMapperTest extends BaseMapperTest{
             SysPrivilege privilege = privilegeMapper.selectById(1L);
             //privilege 不为空
             Assert.assertNotNull(privilege);
-            //privilegeName = 管理员
+            System.out.println(privilege.toString());
             Assert.assertEquals("用户管理", privilege.getPrivilegeName());
         } finally {
             //不要忘记关闭 sqlSession

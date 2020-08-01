@@ -1,5 +1,6 @@
 package com.alexdyysp.model;
 
+import java.util.Arrays;
 import java.util.Date;
 
 public class SysUser {
@@ -109,5 +110,18 @@ public class SysUser {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    @Override
+    public String toString() {
+        return "SysUser{" +
+                "id=" + id +
+                ", userName='" + userName + '\'' +
+                ", userPassword='" + userPassword + '\'' +
+                ", userEmail='" + userEmail + '\'' +
+                ", userInfo='" + userInfo + '\'' +
+                ", headImg=" + Arrays.toString(headImg) +
+                ", createTime=" + createTime +
+                '}';
     }
 }
