@@ -18,6 +18,10 @@
         select * from sys_user where id = #{id}
     </select>
 
+    <select id="selectByUserName" resultMap="userMap">
+        select * from sys_user where user_name = #{userName}
+    </select>
+
     <select id="selectAll" resultType="com.alexdyysp.model.SysUser">
         select id,
 	    	user_name userName,
@@ -41,6 +45,7 @@
         where u.id=#{userId}
     </select>
 
+
     <insert id="insert">
         insert into sys_user(
 			user_name, user_password, user_email,
@@ -52,10 +57,16 @@
 
     <insert id="insertByUseGeneratedKeys" useGeneratedKeys="true" keyProperty="id">
         insert into sys_user(
-			user_name, user_password, user_email,
-			user_info, head_img, create_time)
+			user_name, user_password,
+            <if test="userEmail != null and userEmail != ''">
+                user_email,
+            </if>
+            user_info, head_img, create_time)
 		values(
-			#{userName}, #{userPassword}, #{userEmail},
+			#{userName}, #{userPassword},
+            <if test="userEmail != null and userEmail != ''">
+                #{userEmail},
+            </if>
 			#{userInfo}, #{headImg, jdbcType=BLOB}, #{createTime, jdbcType=TIMESTAMP})
     </insert>
 
@@ -98,5 +109,111 @@
 		inner join sys_role r on ur.role_id = r.id
 		where u.id = #{param1} and r.enabled = #{param2}
     </select>
+
+    <select id="selectByUserNameOrUserEmail" resultType="com.alexdyysp.model.SysUser">
+        select id,
+            user_name userName,
+	        user_password userPassword,
+	        user_email userEmail,
+	        user_info userInfo,
+	        head_img headImg,
+	        create_time createTime
+	    from sys_user
+	    <where>
+            <!--<if test="@com.alexdyysp.utils.StringUtil@isNotEmpty(userName)">-->
+            <if test="userName != null and userName != ''">
+                and user_name like concat('%', #{userName}, '%')
+            </if>
+            <if test="userEmail != null and userEmail != ''">
+                and user_email = #{userEmail}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateByIdSelective">
+        update sys_user
+        <set>
+            <if test="userName != null and username != ''">
+                user_name = #{username},
+            </if>
+            <if test="userPassword != null and userPassword != ''">
+                user_password = #{userPassword},
+            </if>
+            <if test="userEmail != null and userEmail != ''">
+                user_email = #{userEmail},
+            </if>
+            <if test="userInfo != null and userInfo != ''">
+                user_info = #{userInfo},
+            </if>
+            <if test="headImg != null">
+                head_img = #{headImg, jdbcType=BLOB},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime, jdbcType=TIMESTAMP},
+            </if>
+            id = #{id},
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="selectByIdOrUserName" resultType="com.alexdyysp.model.SysUser">
+        select id,
+	    	user_name userName,
+	        user_password userPassword,
+	        user_email userEmail,
+	        user_info userInfo,
+	        head_img headImg,
+	        create_time createTime
+	    from sys_user
+	    where 1 = 1
+	    <choose>
+            <when test="id != null">
+                and id = #{id}
+            </when>
+            <when test="userName !=null and userName != ''">
+                and user_name = #{userName}
+            </when>
+            <otherwise>
+                and 1 = 2
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectByIdList" resultType="com.alexdyysp.model.SysUser">
+        select id,
+            user_name userName,
+	        user_password userPassword,
+	        user_email userEmail,
+	        user_info userInfo,
+	        head_img headImg,
+	        create_time createTime
+	    from sys_user
+    	where id in
+        <foreach collection="list" open="(" close=")" separator="," item="id" index="1">
+            #{id}
+        </foreach>
+    </select>
+
+    <insert id="insertListByForEach" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_user(
+            user_name, user_password,user_email,
+            user_info, head_img, create_time)
+        values
+        <foreach collection="list" item="user" separator=",">
+            (
+                #{user.userName}, #{user.userPassword}, #{user.userEmail},
+                #{user.userInfo}, #{user.headImg, jdbcType=BLOB}, #{user.createTime, jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateByMapForEach">
+        update sys_user
+        set
+        <foreach collection="_parameter" item="val" index="key" separator=",">
+            ${key} = #{val}
+        </foreach>
+        where id = #{id}
+    </update>
 
 </mapper>
