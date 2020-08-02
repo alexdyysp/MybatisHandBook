@@ -378,6 +378,44 @@ MyBatis 常用的 OGNL 表达式如下：
 >
 >MyBatis 的开发团队提供了一个很强大的代码生成器 —— MyBatis Generator(MBG)。
 >
->MBG 通过丰富的配置可以生成不同类型的代码，代码包含了数据库表对应的实体类、Mapper 接口类、  Mapper XML  文件和 Example 对象等，这些代码文件中几乎包含了全部的单表操作方法，使用 MBG 可以极大程度上方便我们使用 MyBatis，还可以减少很多重复操作。
+>MBG 通过丰富的配置可以生成不同类型的代码，代码包含了数据库表对应的实体类、Mapper 接口类、Mapper XML 文件和 Example 对象等，这些代码文件中几乎包含了全部的单表操作方法，使用 MBG 可以极大程度上方便我们使用 MyBatis，还可以减少很多重复操作。
 
 ### XML配置详解
+>XML文件头中的  mybatis-generator-config_1_0.dtd 用于定义该配置文件中所有标签和属性的用法及限制，在文件头之后，需要写上 XML 文件的根节点 generatorConfiguration。 
+>
+>上面这两部分内容是 MBG 必备的基本信息，后面是 MBG 中的自定义配置部分。介绍 generatorConfiguration 标签下的 3 个子级标签，分别是 properties、classPathEntry 和 context。
+
+在配置这 3 个标签的时候，必须注意它们的顺序，要和这里列举的顺序一致，在后面列举其他标签的时候，也必须严格按照列举这些标签的顺序进行配置。
+
+1. `<properties>` 标签：这个标签用来指定外部的属性元素，最多可以配置 1 个，也可以不配置。properties 标签用于指定一个需要在配置中解析使用的外部属性文件，引入属性文件后，可以在配置中使用 `${property}` 这种形式的引用，通过这种方式引用属性文件中的属性值，对于后面需要配置的 JDBC 信息会很有用。properties 标签包含 resource 和 url 两个属性，只能使用其中一个属性来指定，同时出现则会报错。
+    - `resource`：指定 classpath 下的属性文件，类似 `com/myproject/generatorConfig.properties` 这样的属性值。
+    - `url`：指定文件系统上的特定位置，例如 `file://C:/myfolder/generatorConfig.properties`。
+
+2. `<classPathEntry>`标签：可以配置多个，或者不配，常见用法是通过 location 属性指定驱动路径，`<classPathEntry location="F:\.m2\repository\mysql\mysql-connector-java\5.1.38\mysql-connector-java-5.1.38.jar"/>`
+
+3. `<context>`标签：最重要的标签，至少配置一个。context 标签用于指定生成一组对象的环境。例如指定要连接的数据库，要生成对象的类型和要处理的数据库中的表。运行 MBG 的时候还可以指定要运行的 context。
+    - context 标签只有一个必选属性 id，用来唯一确定该标签，该 id 属性可以在运行 MBG 时使用。此外还有几个可选属性。
+    - defaultModelType：这个属性很重要，定义了 MBG 如何生成实体类。该属性有以下可选值。
+        1. conditional：默认值，和下面的  hierarchical  类似，如果一个表的主键只有一个字段，那么不会为该字段生成单独的实体类，而是会将该字段合并到基本实体类中。
+        2. flat：该模型只为每张表生成一个实体类。这个实体类包含表中的所有字段。这种模型最简单，推荐使用。
+        3. hierarchical：如果表有主键，那么该模型会产生一个单独的主键实体类，如果表还有 BLOB 字段，则会为表生成一个包含所有 BLOB 字段的单独的实体类，然后为所有其他的字段另外生成一个单独的实体类。MBG 会在所有生成的实体类之间维护一个继承关系。
+        4. targetRuntime：此属性用于指定生成的代码的运行时环境，支持以下可选值。
+            - MyBatis3：默认值。
+            - MyBatis3Simple：这种情况不会生成与 Example 相关的方法。
+        5. introspectedColumnImpl：该参数可以指定扩展 org.mybatis.generator.api.Introspected Column 类的实现类。
+        
+#### `<context>`子标签
+>MBG 配置中的其他几个标签基本上都是 context 的子标签，这些子标签（有严格的配置顺序，后面括号中的内容为这些标签可以配置的个数）包括以下几个。
+
+- property（0 个或多个）
+- plugin（0 个或多个）
+- commentGenerator（0 个或 1 个）
+- jdbcConnection（1 个）
+- javaTypeResolver（0 个或 1 个）
+- javaModelGenerator（1 个）
+- sqlMapGenerator（0 个或 1 个）
+- javaClientGenerator（0 个或 1 个）
+- table（1 个或多个）
+
+
+        
