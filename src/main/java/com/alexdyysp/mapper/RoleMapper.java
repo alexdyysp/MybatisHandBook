@@ -50,4 +50,6 @@ public interface RoleMapper {
 
     @Delete("delete from sys_role where id = #{id}")
     int deleteById(Long id);
+
+    List<SysRole> selectRoleByUserIdChoose(Long userId);
 }

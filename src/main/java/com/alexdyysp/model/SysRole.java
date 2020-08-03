@@ -17,7 +17,7 @@ public class SysRole {
     /**
      * 有效标志
      */
-    private Integer enabled;
+    private Enabled enabled;
     /**
      * 创建人
      */
@@ -38,14 +38,14 @@ public class SysRole {
     public SysRole(){
     }
 
-    public SysRole(String roleName, Integer enabled, String createBy, Date createTime) {
+    public SysRole(String roleName, Enabled enabled, String createBy, Date createTime) {
         this.roleName = roleName;
         this.enabled = enabled;
         this.createBy = createBy;
         this.createTime = createTime;
     }
 
-    public SysRole(Long id, String roleName, Integer enabled, String createBy, Date createTime, SysUser user) {
+    public SysRole(Long id, String roleName, Enabled enabled, String createBy, Date createTime, SysUser user) {
         this.id = id;
         this.roleName = roleName;
         this.enabled = enabled;
@@ -70,11 +70,11 @@ public class SysRole {
         this.roleName = roleName;
     }
 
-    public Integer getEnabled() {
+    public Enabled getEnabled() {
         return enabled;
     }
 
-    public void setEnabled(Integer enabled) {
+    public void setEnabled(Enabled enabled) {
         this.enabled = enabled;
     }
 

@@ -2,6 +2,7 @@ package com.alexdyysp.model;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class SysUser {
     /**
@@ -32,6 +33,10 @@ public class SysUser {
      * 创建时间
      */
     private Date createTime;
+
+    private SysRole sysRole;
+
+    private List<SysRole> roleList;
 
     public SysUser(){
 
@@ -110,6 +115,22 @@ public class SysUser {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public SysRole getSysRole() {
+        return sysRole;
+    }
+
+    public void setSysRole(SysRole sysRole) {
+        this.sysRole = sysRole;
+    }
+
+    public List<SysRole> getRoleList() {
+        return roleList;
+    }
+
+    public void setRoleList(List<SysRole> roleList) {
+        this.roleList = roleList;
     }
 
     @Override

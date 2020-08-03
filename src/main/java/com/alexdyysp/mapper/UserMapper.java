@@ -56,4 +56,18 @@ public interface UserMapper {
 
     // 通过Map更新列
     int updateByMapForEach(Map<String, Object> map);
+
+    // 通过用户Id高级查询用户信息和用户权限信息
+    SysUser selectUserAndRoleById(Long Id);
+    SysUser selectUserAndRoleById2(Long Id);  // resultType
+    SysUser selectUserAndRoleById3(Long Id);  // resultType association
+
+    SysUser selectUserAndRoleByIdSelect(Long Id);
+
+    // 获取所有用户和对应所有角色
+    List<SysUser> selectAllUserAndRoles();
+
+    // 通过嵌套获取指定用户信息和权限
+    SysUser selectAllUserAndRolesSelect(Long id);
+
 }

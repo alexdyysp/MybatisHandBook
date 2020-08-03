@@ -5,11 +5,17 @@
     <settings>
         <setting name="logImpl" value="LOG4J"/>
         <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <setting name="aggressiveLazyLoading" value="false"/>
     </settings>
 
     <typeAliases>
         <package name="com.alexdyysp.model"/>
     </typeAliases>
+
+    <typeHandlers>
+        <typeHandler handler="com.alexdyysp.type.EnabledTypeHandler"
+                     javaType="com.alexdyysp.type.Enabled"/>
+    </typeHandlers>
 
     <environments default="development">
         <environment id="development">
@@ -31,7 +37,7 @@
         <mapper resource="mapper/UserMapper.xml"/>
         <mapper resource="mapper/RoleMapper.xml"/>
         <mapper resource="mapper/PrivilegeMapper.xml"/>
-
+        <mapper resource="mapper/UserRoleMapper.xml"/>
     </mappers>
 
 </configuration>

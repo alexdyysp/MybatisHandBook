@@ -187,7 +187,7 @@ public String selectById(final Long id){
 
 #### @DeleteProvider
 
-## MyBatis动态SQL
+## 四、MyBatis动态SQL
 MyBatis的强大特性之一便是它的动态SQL。使用过JDBC或其他类似框架的人都会知道，根据不同条件拼接SQL语句时不仅不能忘了必要的空格，还要注意省略掉列名列表最后的逗号，处理方式麻烦且凌乱。<br>
 MyBatis 的动态 SQL 则能让我们摆脱这种痛苦。在 MyBatis 3 之前的版本中，使用动态 SQL 需要学习和了解非常多的标签。<br>
 现在 MyBatis 采用了功能强大的OGNL(Object-Graph Navigation Language)表达式语言消除了许多其他标签。<br>
@@ -417,5 +417,78 @@ MyBatis 常用的 OGNL 表达式如下：
 - javaClientGenerator（0 个或 1 个）
 - table（1 个或多个）
 
+## 五、MyBatis高级查询
+> 基本的CRUD和动态SQL是可以满足大部分需求。
+>
+> MyBatis的高级结果映射
+>   1. 主要处理数据库一对一、一对多的查询
+>   2. 处理使用存储过程方法，处理存储过程的入参和出参方法
+>   3. 处理Java枚举和数据库字段
 
-        
+### 高级结果映射
+>数据库往往存在着一对多这样的复杂嵌套关系。面对这种关系时，可能要写多个查询方法分别查询这些数据，然后组合到一起。这种处理方式特别适合大型系统上，由于分表分库，这种用法可以减少表之间关联查询，方便系统进行扩展。
+>
+>一般的企业级应用中，使用MyBatis的高级结果映射便可以轻松地处理这种一对一、一对多的关系。
+
+#### 一对一映射
+一对一映射不需要考虑重复数据，使用简单，可以直接使用MyBatis自动映射。
+
+使用自动映射就是通过别名让 MyBatis 自动将值匹配到对应的字段上，简单的别名映射如 user_name 对应 userName。
+
+除此之外 MyBatis 还支持复杂的属性映射，可以多层嵌套，例如将 `role.role_name` 映射到 `role.roleName` 上。MyBatis 会先查找 role 属性，如果存在 role 属性就创建 role 对象，然后在 role 对象中继续查找 roleName，将 role_name 的值绑定到 role 对象的  roleName  属性上。
+
+1. 自动配置处理一对一映射映射：
+通过 SQL 日志可以看到已经查询出的一条数据，MyBatis 将这条数据映射到了两个类中，像这种通过一次查询将结果映射到不同对象的方式，称之为关联的嵌套结果映射。关联的嵌套结果映射需要关联多个表将所有需要的值一次性查询出来。这种方式的好处是减少数据库查询次数，减轻数据库的压力，缺点是要写很复杂的 SQL，并且当嵌套结果更复杂时，不容易一次写正确，由于要在应用服务器上将结果映射到不同的类上，因此也会增加应用服务器的压力。当一定会使用到嵌套结果，并且整个复杂的 SQL 执行速度很快时，建议使用关联的嵌套结果映射。
+
+2. resultMap配置处理一对一映射：
+
+3. resultMap的association标签配置一对一映射：
+    `<association>`标签包含以下属性。
+    - property：对应实体类中的属性名，必填项。
+    - javaType：属性对应的 Java 类型。
+    - resultMap：可以直接使用现有的resultMap，而不需要在这里配置。
+    - columnPrefix：查询列的前缀，配置前缀后，在子标签配置 result 的 column 时可以省略前缀。
+
+4. association标签的嵌套查询:
+    association 标签的嵌套查询常用的属性如下。
+    - select：另一个映射查询的 id，MyBatis 会额外执行这个查询获取嵌套对象的结果。
+    - column：列名（或别名），将主查询中列的结果作为嵌套查询的参数，配置方式如 column={prop1=col1，prop2=col2}，prop1 和 prop2 将作为嵌套查询的参数。
+    - fetchType：数据加载方式，可选值为 lazy 和 eager，分别为延迟加载和积极加载，这个配置会覆盖全局的 lazyLoadingEnabled 配置。
+
+```xml
+<resultMap id="userRoleMapSelect" extends="userMap" type="com.alexdyysp.model.SysUser">
+    <association property="sysRole" column="{id=role_id}" select="com.alexdyysp.mapper.RoleMapper.selectRoleById"/>
+</resultMap>
+```
+
+结果和我们想的一致，因为第一个 SQL 的查询结果只有一条，所以根据这一条数据的 role_id 关联了另一个查询，因此执行了两次 SQL。这种配置方式符合开始时预期的结果，但是由于嵌套查询会多执行 SQL，所以还要考虑更多情况。
+
+在这个例子中，是否一定会用到 SysRole 呢？如果查询出来并没有使用，那不就白白浪费了一次查询吗？如果查询的不是 1 条数据，而是 N 条数据，那就会出现 N+1 问题，主 SQL 会查询一次，查询出 N 条结果，这 N 条结果要各自执行一次查询，那就需要进行 N 次查询。
+
+如何解决这个问题呢？
+
+在上面介绍  association  标签的属性时，介绍了  fetchType  数据加载方式，这个方式可以帮我们实现延迟加载，解决 N+1 的问题。按照上面的介绍，需要把  fetchType  设置为 lazy，这样设置后，只有当调用对应嵌套数据结构的get()方法时，MyBatis 才会执行嵌套查询去获取数据。
+
+需要把mybatis配置的延迟加载属性从默认值true改为false
+```xml
+<setting name="aggressiveLazyLoading" value="false"/>
+```
+
+#### 一对多映射
+
+1. collection集合的嵌套结果映射
+
+2. 鉴别器映射
+>有时一个单独的数据库查询会返回很多不同数据类型（希望有些关联）的结果集。  discriminator  鉴别器标签就是用来处理这种情况的。鉴别器非常容易理解，因为它很像 Java 语言的 switch
+
+discriminator  标签常用的两个属性如下：
+
+- column：该属性用于设置要进行鉴别比较值的列。
+- javaType：该属性用于指定列的类型，保证使用相同的 Java 类型来比较值。discriminator  标签可以有 1 个或多个 case 标签，case 标签包含以下三个属性。
+- value：该值为  discriminator  指定 column 用来匹配的值。
+- resultMap：当 column 的值和 value 的值匹配时，可以配置使用 resultMap 指定的映射，resultMap 优先级高于 resultType。
+- resultType：当 column 的值和 value 的值匹配时，用于配置使用 resultType 指定的映射。case 标签下面可以包含的标签和 resultMap 一样，用法也一样。
+
+### 存储过程
+
+### 枚举类

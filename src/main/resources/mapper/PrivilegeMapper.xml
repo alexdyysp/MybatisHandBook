@@ -3,5 +3,16 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 
 <mapper namespace="com.alexdyysp.mapper.PrivilegeMapper">
+    <resultMap id="privilegeMap" type="com.alexdyysp.model.SysPrivilege">
+        <result property="privilegeName" column="privilege_name" />
+        <result property="privilegeUrl" column="privilege_url" />
+    </resultMap>
+
+    <select id="selectPrivilegeByRoleId" resultMap="privilegeMap">
+		select p.*
+		from sys_privilege p
+		inner join sys_role_privilege rp on rp.privilege_id = p.id
+		where role_id = #{roleId}
+	</select>
 
 </mapper>
