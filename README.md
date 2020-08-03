@@ -442,6 +442,17 @@ MyBatis 常用的 OGNL 表达式如下：
 
 2. resultMap配置处理一对一映射：
 
+    ```xml
+    <resultMap id="userRoleMap" extends="userMap" type="com.alexdyysp.model.SysUser">
+    <id property="id" column="id"/>
+    <result property="roleName" column="role_name"/>
+    <result property="enabled" column="enabled"/>
+    <result property="createBy" column="create_by"/>
+    <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>    
+    </resultMap>
+    ```
+    注意这里的extends，它使得resultMap userRoleMap和userMap关联了起来。
+
 3. resultMap的association标签配置一对一映射：
     `<association>`标签包含以下属性。
     - property：对应实体类中的属性名，必填项。
@@ -455,40 +466,92 @@ MyBatis 常用的 OGNL 表达式如下：
     - column：列名（或别名），将主查询中列的结果作为嵌套查询的参数，配置方式如 column={prop1=col1，prop2=col2}，prop1 和 prop2 将作为嵌套查询的参数。
     - fetchType：数据加载方式，可选值为 lazy 和 eager，分别为延迟加载和积极加载，这个配置会覆盖全局的 lazyLoadingEnabled 配置。
 
-```xml
-<resultMap id="userRoleMapSelect" extends="userMap" type="com.alexdyysp.model.SysUser">
-    <association property="sysRole" column="{id=role_id}" select="com.alexdyysp.mapper.RoleMapper.selectRoleById"/>
-</resultMap>
-```
+    ```xml
+    <resultMap id="userRoleMapSelect" extends="userMap" type="com.alexdyysp.model.SysUser">
+        <association property="sysRole" column="{id=role_id}" select="com.alexdyysp.mapper.RoleMapper.selectRoleById"/>
+    </resultMap>
+    ```
 
-结果和我们想的一致，因为第一个 SQL 的查询结果只有一条，所以根据这一条数据的 role_id 关联了另一个查询，因此执行了两次 SQL。这种配置方式符合开始时预期的结果，但是由于嵌套查询会多执行 SQL，所以还要考虑更多情况。
-
-在这个例子中，是否一定会用到 SysRole 呢？如果查询出来并没有使用，那不就白白浪费了一次查询吗？如果查询的不是 1 条数据，而是 N 条数据，那就会出现 N+1 问题，主 SQL 会查询一次，查询出 N 条结果，这 N 条结果要各自执行一次查询，那就需要进行 N 次查询。
-
-如何解决这个问题呢？
-
-在上面介绍  association  标签的属性时，介绍了  fetchType  数据加载方式，这个方式可以帮我们实现延迟加载，解决 N+1 的问题。按照上面的介绍，需要把  fetchType  设置为 lazy，这样设置后，只有当调用对应嵌套数据结构的get()方法时，MyBatis 才会执行嵌套查询去获取数据。
-
-需要把mybatis配置的延迟加载属性从默认值true改为false
-```xml
-<setting name="aggressiveLazyLoading" value="false"/>
-```
+    结果和我们想的一致，因为第一个 SQL 的查询结果只有一条，所以根据这一条数据的 role_id 关联了另一个查询，因此执行了两次 SQL。这种配置方式符合开始时预期的结果，但是由于嵌套查询会多执行 SQL，所以还要考虑更多情况。
+    
+    在这个例子中，是否一定会用到 SysRole 呢？如果查询出来并没有使用，那不就白白浪费了一次查询吗？如果查询的不是 1 条数据，而是 N 条数据，那就会出现 N+1 问题，主 SQL 会查询一次，查询出 N 条结果，这 N 条结果要各自执行一次查询，那就需要进行 N 次查询。
+    
+    如何解决这个问题呢？
+    
+    在上面介绍  association  标签的属性时，介绍了  fetchType  数据加载方式，这个方式可以帮我们实现延迟加载，解决 N+1 的问题。按照上面的介绍，需要把  fetchType  设置为 lazy，这样设置后，只有当调用对应嵌套数据结构的get()方法时，MyBatis 才会执行嵌套查询去获取数据。
+    
+    需要把mybatis配置的延迟加载属性从默认值true改为false
+    ```xml
+    <setting name="aggressiveLazyLoading" value="false"/>
+    ```
 
 #### 一对多映射
 
 1. collection集合的嵌套结果映射
 
+```xml
+// UserMapper.xml
+<resultMap id="userRoleListMapSelect" type="com.alexdyysp.model.SysUser" extends="userMap">
+    <collection property="roleList" fetchType="lazy"
+                select="com.alexdyysp.mapper.RoleMapper.selectRoleByUserId"
+                column="{userId=id}"/>
+</resultMap>
+
+// RoleMapper.xml
+<select id="selectRoleByUserId" resultMap="rolePrivilegeListMapSelect">
+    select
+        r.id,
+        r.role_name,
+        r.enabled,
+        r.create_by,
+        r.create_time
+    from sys_role r
+    inner join sys_user_role ur on ur.role_id = r.id
+    where ur.user_id = #{userId}
+</select>
+```
+collection 的属性 column 配置为 `{role_id=id}`，将当前查询用户中的 id 赋值给 role_id，使用 roleId 作为参数再进行 selectRoleByUserId 查询。因为所有嵌套查询都配置为延迟加载，因此不存在 N+1 的问题。
+
 2. 鉴别器映射
->有时一个单独的数据库查询会返回很多不同数据类型（希望有些关联）的结果集。  discriminator  鉴别器标签就是用来处理这种情况的。鉴别器非常容易理解，因为它很像 Java 语言的 switch
-
-discriminator  标签常用的两个属性如下：
-
-- column：该属性用于设置要进行鉴别比较值的列。
-- javaType：该属性用于指定列的类型，保证使用相同的 Java 类型来比较值。discriminator  标签可以有 1 个或多个 case 标签，case 标签包含以下三个属性。
-- value：该值为  discriminator  指定 column 用来匹配的值。
-- resultMap：当 column 的值和 value 的值匹配时，可以配置使用 resultMap 指定的映射，resultMap 优先级高于 resultType。
-- resultType：当 column 的值和 value 的值匹配时，用于配置使用 resultType 指定的映射。case 标签下面可以包含的标签和 resultMap 一样，用法也一样。
+    >有时一个单独的数据库查询会返回很多不同数据类型（希望有些关联）的结果集。  discriminator  鉴别器标签就是用来处理这种情况的。鉴别器非常容易理解，因为它很像 Java 语言的 switch
+    
+    discriminator  标签常用的两个属性如下：
+    
+    - column：该属性用于设置要进行鉴别比较值的列。
+    - javaType：该属性用于指定列的类型，保证使用相同的 Java 类型来比较值。discriminator  标签可以有 1 个或多个 case 标签，case 标签包含以下三个属性。
+    - value：该值为  discriminator  指定 column 用来匹配的值。
+    - resultMap：当 column 的值和 value 的值匹配时，可以配置使用 resultMap 指定的映射，resultMap 优先级高于 resultType。
+    - resultType：当 column 的值和 value 的值匹配时，用于配置使用 resultType 指定的映射。case 标签下面可以包含的标签和 resultMap 一样，用法也一样。
 
 ### 存储过程
 
 ### 枚举类
+
+#### MyBatis提供的枚举处理器
+MyBatis 在启动时会加载所有的 JDBC 对应的类型处理器，在处理枚举类型时默认使用 `org.apache.ibatis.type.EnumTypeHandler` 处理器，这个处理器会将枚举类型转换为字符串类型的字面值并使用.
+
+对于 Enabled 而言便是＂disabled＂和＂enabled＂字符串。在这个例子中，由于数据库使用的是 int 类型，所以在 Java 的 String 类型和数据库 int 类型互相转换时，肯定会报错。
+
+因为 MyBatis 默认使用 `org.apache.ibatis.type.EnumTypeHandler` ，这个处理器只是对枚举的字面值进行处理，所以不适合当前的情况。除了这个枚举类型处理器，MyBatis 还提供了另一个 `org.apache.ibatis.type.EnumOrdinalTypeHandler` 处理器，这个处理器使用枚举的索引进行处理，可以解决此处遇到的问题。想要使用这个处理器，需要在  mybatis-config.xml  中添加如下配置。
+
+
+#### 自定义枚举处理器
+
+```java
+public enum Enabled {
+    enabled(1), //启用
+    disabled(0);//禁用
+    private final int value;
+}
+```
+
+这个 Enum 类与顺序无关，针对自定义枚举类类需要新增处理类 `EnabledTypeHandler` 实现 `TypeHandler` 接口。并重写 `setParameter` 和 `getResult` 方法。
+
+最后配置handler自定义处理类
+```xml
+<typeHandlers>
+    <typeHandler handler="com.alexdyysp.type.EnabledTypeHandler"
+                 javaType="com.alexdyysp.type.Enabled"/>
+</typeHandlers>
+```
+
